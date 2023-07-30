@@ -75,4 +75,130 @@ router.get('/api/expensesGrouped', async (req, res) => {
   }  
 });
 
+
+
+///////////////////////////////////////////////////////////////
+
+router.get('/api/mostExpensiveDay', async (req, res) => {
+  try {
+    const expenses = await Task.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          totalAmount: { $sum: '$amount' }
+        }
+      },
+      {
+        $sort: { totalAmount: -1 }
+      },
+      {
+        $limit: 1
+      }
+    ]);
+
+    if (expenses.length > 0) {
+      res.json(expenses[0]);
+    } else {
+      res.json({ message: 'No se encontraron gastos' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el día con mayor gasto' });
+  }  
+});
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+router.get('/api/leastExpensiveDay', async (req, res) => {
+  try {
+    const expenses = await Task.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          totalAmount: { $sum: '$amount' }
+        }
+      },
+      {
+        $sort: { totalAmount: 1 }
+      },
+      {
+        $limit: 1
+      }
+    ]);
+
+    if (expenses.length > 0) {
+      res.json(expenses[0]);
+    } else {
+      res.json({ message: 'No se encontraron gastos' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el día con menor gasto' });
+  }
+});
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+
+
+
+router.get('/api/mostRepeatedExpense', async (req, res) => {
+  try {
+    const expenses = await Task.aggregate([
+      {
+        $group: {
+          _id: '$charge',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 1
+      }
+    ]);
+
+    if (expenses.length > 0) {
+      res.json(expenses[0]);
+    } else {
+      res.json({ message: 'No se encontraron gastos' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el gasto más repetido' });
+  }
+});
+
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+
+router.get('/api/totalExpensesByMonth', async (req, res) => {
+  try {
+    const expenses = await Task.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    res.json(expenses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el total de gastos por mes' });
+  }
+});
+
 module.exports = router;
